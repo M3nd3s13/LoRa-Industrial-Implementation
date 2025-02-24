@@ -1,3 +1,1 @@
-This repository is divided into two folders, the scalability algorithms folder and the Excel-data-sheets-chapter5 folder.
-Scalability algorithm presents two algorithms simulating LoRa collisions, for assessment of the scalability of the technology.
-The second folder presents the data sheets associated with chapter 5 GP1 and GP3 simulations
+This repository is organized into two main folders: the Scalability Algorithms folder and the Excel-Data-Sheets-Chapter5 folder. The Scalability Algorithms folder contains two algorithms designed to simulate LoRa collisions, providing an assessment of the technology's scalability. The Excel-Data-Sheets-Chapter5 folder includes data sheets related to the Chapter 5 GP1 and GP3 simulations.
