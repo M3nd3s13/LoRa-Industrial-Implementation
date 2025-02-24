@@ -7,7 +7,7 @@ SF = [7, 8, 9, 10, 11, 12]  # Spreading Factors
 channels = list(range(8))  # 8 channels (0 to 7)
 connecting_interval = 300  # Uplink time for each sensor
 
-# Transmission intervals and Time-on-Air (ToA) for each SF
+# Transmission intervals and Time-on-Air for each SF
 transmission_intervals = [300, 500, 600]
 toa_per_sf = {7: 0.67, 8: 0.1132, 9: 0.2058, 10: 0.4116, 11: 0.8233, 12: 1.6466}
 
@@ -31,7 +31,6 @@ def check_collisions_vectorized(transmission_times, channel_vector, sf_vector):
     channels_arr = channel_vector.flatten()
     sfs = sf_vector.flatten()
 
-    # Sort transmissions by start time for efficient window searches
     order = np.argsort(start_times)
     start_times_sorted = start_times[order]
     channels_sorted = channels_arr[order]
@@ -41,8 +40,7 @@ def check_collisions_vectorized(transmission_times, channel_vector, sf_vector):
     toa_array = np.array([toa_per_sf[sf] for sf in sfs_sorted])
     end_times = start_times_sorted + toa_array
 
-    # --- Buffer Collision Check ---
-    # For each transmission, count the number of transmissions starting before its end time.
+   #Demodulator limit
     j_indices = np.searchsorted(start_times_sorted, end_times, side='left')
     buffer_counts = j_indices - np.arange(len(start_times_sorted))
     max_buffers = np.array([max_buffer_limits[sf] for sf in sfs_sorted])
@@ -50,7 +48,7 @@ def check_collisions_vectorized(transmission_times, channel_vector, sf_vector):
     excess_buffer = np.maximum(buffer_counts - max_buffers, 0)
     collisions_buffer = np.sum(excess_buffer)
 
-    # --- Same SF & Same Channel Collision Check ---
+    # Same SF & Same Channel Collision Check
     collisions_same = 0
     unique_sfs = np.unique(sfs_sorted)
     for sf_val in unique_sfs:
@@ -61,7 +59,6 @@ def check_collisions_vectorized(transmission_times, channel_vector, sf_vector):
             group_times = start_times_sorted[mask]
             if group_times.size == 0:
                 continue
-            # The ToA is constant within the group
             group_toa = toa_per_sf[sf_val]
             group_end_times = group_times + group_toa
             # Use searchsorted to count how many transmissions in the group fall within each packet's window.
@@ -70,7 +67,6 @@ def check_collisions_vectorized(transmission_times, channel_vector, sf_vector):
             # For each packet, overlapping packets are (group_counts - 1)
             collisions_same += np.sum(group_counts - 1)
 
-    # Since each collision pair is counted twice, divide the total by 2.
     total_collisions = (collisions_buffer + collisions_same) // 2
     return int(total_collisions)
 
@@ -79,9 +75,9 @@ def simulate_packet_loss_rate(start_devices, end_devices, step_devices):
     packet_loss_rates = []
 
     for N in num_transmitters:
-        # Generate channel and SF assignments for each packet
+        
         channel_vector = np.random.choice(channels, size=(N, n))
-        # Adjust probabilities for SF selection as specified
+        # Adjust probabilities for SF selection
         sf_vector = np.random.choice(SF, size=(N, n), p=[0.4, 0.25, 0.15, 0.1, 0.05, 0.05])
         transmission_interval_vector = np.random.choice(transmission_intervals, size=N)
         initial_start_times = np.random.uniform(0, connecting_interval, size=N)
@@ -98,9 +94,9 @@ def simulate_packet_loss_rate(start_devices, end_devices, step_devices):
     return num_transmitters, packet_loss_rates
 
 # User inputs for device count control
-start_devices = 1     # Starting number of devices
-end_devices = 3000    # Final number of devices for the test
-step_devices = 100    # Increase device count by this number between tests
+start_devices = 1    
+end_devices = 3000    
+step_devices = 100   
 
 # Run simulation
 num_transmitters, packet_loss_rates = simulate_packet_loss_rate(start_devices, end_devices, step_devices)
